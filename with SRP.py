@@ -1,0 +1,93 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class TaskManager:
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, task):
+        if task:
+            self.tasks.append({'text': task, 'status': 'Pending'})
+            return True
+        return False
+
+    def delete_task(self, index):
+        if 0 <= index < len(self.tasks):
+            del self.tasks[index]
+            return True
+        return False
+
+    def mark_as_completed(self, index):
+        if 0 <= index < len(self.tasks):
+            self.tasks[index]['status'] = 'Completed'
+            return True
+        return False
+
+    def get_tasks(self):
+        return self.tasks
+
+    def sort_tasks(self):
+        self.tasks.sort(key=lambda x: x['status'])
+
+class TodoApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("To-Do List")
+
+        # Initialize Task Manager
+        self.task_manager = TaskManager()
+
+        # Create GUI elements
+        tk.Label(root, text="Task:").grid(row=0, column=0)
+        self.task_entry = tk.Entry(root)
+        self.task_entry.grid(row=0, column=1)
+
+        tk.Button(root, text="Add Task", command=self.add_task).grid(row=0, column=2)
+        tk.Button(root, text="Delete Selected Task", command=self.delete_task).grid(row=1, column=2)
+        tk.Button(root, text="Sort Tasks", command=self.sort_tasks).grid(row=2, column=2)
+
+        self.task_listbox = tk.Listbox(root, selectmode=tk.SINGLE)
+        self.task_listbox.grid(row=1, column=0, columnspan=2)
+
+        tk.Button(root, text="Mark as Completed", command=self.mark_as_completed).grid(row=2, column=0, columnspan=2)
+
+    def add_task(self):
+        task = self.task_entry.get()
+        if self.task_manager.add_task(task):
+            self.update_task_list()
+            self.task_entry.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Warning", "You must enter a task!")
+
+    def delete_task(self):
+        selected_index = self.task_listbox.curselection()
+        if selected_index:
+            if self.task_manager.delete_task(selected_index[0]):
+                self.update_task_list()
+            else:
+                messagebox.showwarning("Warning", "Failed to delete the selected task!")
+        else:
+            messagebox.showwarning("Warning", "You must select a task to delete!")
+
+    def mark_as_completed(self):
+        selected_index = self.task_listbox.curselection()
+        if selected_index:
+            if self.task_manager.mark_as_completed(selected_index[0]):
+                self.update_task_list()
+            else:
+                messagebox.showwarning("Warning", "Failed to mark the task as completed!")
+        else:
+            messagebox.showwarning("Warning", "You must select a task to mark as completed!")
+
+    def sort_tasks(self):
+        self.task_manager.sort_tasks()
+        self.update_task_list()
+
+    def update_task_list(self):
+        self.task_listbox.delete(0, tk.END)
+        for task in self.task_manager.get_tasks():
+            self.task_listbox.insert(tk.END, f"{task['text']} ({task['status']})")
+
+root = tk.Tk()
+app = TodoApp(root)
+root.mainloop()
